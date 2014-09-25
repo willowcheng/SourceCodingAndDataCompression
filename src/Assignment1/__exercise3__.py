@@ -26,6 +26,7 @@ class Tag_Generation(object):
     fx = []
     # variable temp will be used in temporary storage
     temp = 0
+    output = []
 
     def __init__(self, model, sequence):
         self.model = model
@@ -38,20 +39,30 @@ class Tag_Generation(object):
         for i in list(self.model.values()):
             temp = self.temp
             self.temp += i
-            self.fx.append((temp, self.temp))
+            self.fx.append([temp, self.temp])
             print(self.fx)
         self.temp = 0
         
     def encode_sequence_generate(self, sequence):
         for i in sequence:
             bounds = self.fx[list(self.model.keys()).index(i)]
-            lower_bound, upper_bound = bounds[0], bounds[1]
-            self.update_bounds(self.lower_bound, self.upper_bound, lower_bound, upper_bound)
+            lower_fx, upper_fx = bounds[0], bounds[1]
+            self.update_bounds(lower_fx, upper_fx)
+            if self.upper_bound < 0.5:
+                self.e1_scale()
+                self.output.append("0")
+            elif self. lower_bound >= 0.5:
+                self.e2_scale()
+                self.output.append("1")
+        self.output.append("100000")
+            
         
-    def update_bounds(self, lower_bound, upper_bound, lower_fx, upper_fx):
-        lower_bound = lower_bound + (upper_bound - lower_bound) * lower_fx
-        upper_bound = lower_bound + (upper_bound - lower_bound) * upper_fx
+    def update_bounds(self, lower_fx, upper_fx):
+        self.lower_bound = self.lower_bound + (self.upper_bound - self.lower_bound) * lower_fx
+        self.upper_bound = self.lower_bound + (self.upper_bound - self.lower_bound) * upper_fx
         
+    def get_output(self):
+        return self.output
         
 my_encode_sequence = Tag_Generation(MODEL, SEQUENCE_1)   
-        
+print(my_encode_sequence.get_output)
