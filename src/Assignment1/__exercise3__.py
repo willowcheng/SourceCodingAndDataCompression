@@ -19,6 +19,7 @@ MODEL = [LETTERS, PROBABILITIES]
 SEQUENCE_1 = ["1", "3", "2", "1"]
 SEQUENCE_2 = ["3", "2", "1", "1"]
 
+#------------------------------------------------------------------------------ Encode Class
 class Tag_Encode(object):
     '''Generation of arithmetic encode for given sequence'''
     # initialize lower bound and upper bound with 0 and 1
@@ -93,6 +94,7 @@ class Tag_Encode(object):
         self.model = {}
         self.sequence = []
         
+#------------------------------------------------------------------------------ Decode Class
 class Tag_Decode(object):
     '''Decode given sequence with model'''
     buffer = 0
@@ -102,6 +104,7 @@ class Tag_Decode(object):
     fx = []
     output = []
     flag = True
+    # store the indices of sequence
     index_sequence = 0
     
     def __init__(self, model, sequence):
@@ -115,23 +118,30 @@ class Tag_Decode(object):
     def decode_sequence_generate(self, index_sequence):
         '''Generate decode sequence with rescale methods'''
         i = self.index_sequence
+        # make a lifelong loop until return occurs
         while True:
             if self.upper_bound >= 0.5 and self.lower_bound < 0.5:
+                # choose specific length of sequence for further process
                 temp_sequence = self.sequence[i:i+6] 
                 if self.flag == True:
                     self.temp = self.calc_values(temp_sequence)
+                    # loop will be dead when last 6 bits are 100000
                     if self.temp == 2 ** (-1):
                         lower_fx, upper_fx = self.search_fx()
                         return
                     self.flag = False
-                self.temp = (self.temp - self.lower_bound) / (self.upper_bound - self.lower_bound)              
+                # get temp value with respect to lower bound and upper bound
+                self.temp = (self.temp - self.lower_bound) / (self.upper_bound - self.lower_bound) 
+                # update fx and get add letter to output value             
                 lower_fx, upper_fx = self.search_fx()
+                # update bounds value which is similar to encode class
                 self.update_bounds(lower_fx, upper_fx, self.lower_bound, self.upper_bound)    
             else:
                 if self.upper_bound < 0.5:
                     self.e1_rescale()
                 elif self.lower_bound >= 0.5:
                     self.e2_rescale()
+                # increment index value to realize shift temp sequence
                 i += 1
                 self.flag = True
                                                               
@@ -152,14 +162,17 @@ class Tag_Decode(object):
 
             
     def search_fx(self):
+        '''Search range of fx and return lower Fx and upper Fx'''
         for i in range(len(self.fx)):
                 if self.temp < self.fx[i][1]:
+                    # assign lower value and upper value of Fx[i]
                     lower_fx, upper_fx = self.fx[i][0], self.fx[i][1]
                     self.output.append(self.letters[i])
                     return lower_fx, upper_fx
         
             
     def calc_values(self, temp_sequence):
+        '''Calculate temp based on binary codes'''
         temp = 0
         for i in range(len(temp_sequence)):
             if temp_sequence[i] == "1":
@@ -177,17 +190,25 @@ class Tag_Decode(object):
         self.upper_bound = 2 * (self.upper_bound - 0.5)
         
     def get_output(self):
+        '''Return output value which contains all the letters'''
         return self.output
         
+#------------------------------------------------------------------------------ Encode Instance
 # instantiate with SEQUENCE_1
 encode_result = Tag_Encode(MODEL, SEQUENCE_1).get_output()
 # print sequence list as well as encoded sequence 
-print("Result: ", encode_result) 
-print("Encoded sequence: ", end="")
+print("Encoded result: ", encode_result) 
+print("Encoded sequence: ", end = "")
 my_encode_sequence = ""
 for i in encode_result:
     my_encode_sequence += i
 print(my_encode_sequence)
     
-my_decode_sequence = Tag_Decode(MODEL, list(my_encode_sequence)).get_output()
-print("Decoded sequence: ", my_decode_sequence)
+#------------------------------------------------------------------------------ Decode Instance
+decode_result = Tag_Decode(MODEL, list(my_encode_sequence)).get_output()
+print("Decoded result: ", decode_result)
+print("Decoded sequence: ", end = "")
+my_decode_sequence = ""
+for i in decode_result:
+    my_decode_sequence += i
+print(my_decode_sequence)
