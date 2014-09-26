@@ -10,7 +10,7 @@ needed, make necessary assumptions.
 Created on Sep 25, 2014
 
 @author: Liu Cheng
-@version: 1.2
+@version: 2.0
 '''
 
 LETTERS = ["1", "2" , "3"]
@@ -101,8 +101,8 @@ class Tag_Decode(object):
     temp = 0
     fx = []
     output = []
-    temp2 = 0
     flag = True
+    index_sequence = 0
     
     def __init__(self, model, sequence):
         '''Initialize letters and probabilities with model (comprise of such two lists)'''
@@ -110,31 +110,31 @@ class Tag_Decode(object):
         self.probabilities = model[1]
         self.sequence = sequence
         self.fx_generation()
-        self.decode_sequence_generate()
+        self.decode_sequence_generate(self.index_sequence)
         
-    def decode_sequence_generate(self):
+    def decode_sequence_generate(self, index_sequence):
         '''Generate decode sequence with rescale methods'''
-        for i in range(len(self.sequence)):
-            temp_sequence = self.sequence[i:i+6] 
-            if self.flag == True:
-                self.calc_values(temp_sequence)
-                self.flag = False
-            if self.temp == 2 ** (-1):
-                return
-            while (True):
-                # in such conditions, choice proper scale and add 0 or 1 to output
+        i = self.index_sequence
+        while True:
+            if self.upper_bound >= 0.5 and self.lower_bound < 0.5:
+                temp_sequence = self.sequence[i:i+6] 
+                if self.flag == True:
+                    self.temp = self.calc_values(temp_sequence)
+                    if self.temp == 2 ** (-1):
+                        lower_fx, upper_fx = self.search_fx()
+                        return
+                    self.flag = False
+                self.temp = (self.temp - self.lower_bound) / (self.upper_bound - self.lower_bound)              
+                lower_fx, upper_fx = self.search_fx()
+                self.update_bounds(lower_fx, upper_fx, self.lower_bound, self.upper_bound)    
+            else:
                 if self.upper_bound < 0.5:
                     self.e1_rescale()
-                    break
                 elif self.lower_bound >= 0.5:
                     self.e2_rescale()
-                    break
-                else:
-                    if self.flag == False:
-                        self.temp = (self.temp - self.lower_bound) / (self.upper_bound - self.lower_bound)
-                        self.flag = True   
-                    lower_fx, upper_fx = self.search_fx()
-                    self.update_bounds(lower_fx, upper_fx, self.lower_bound, self.upper_bound)                                           
+                i += 1
+                self.flag = True
+                                                              
                 
     def update_bounds(self, lower_fx, upper_fx, lower_bound, upper_bound):
         '''Update bounds as soon as a new letter comes'''
@@ -143,29 +143,28 @@ class Tag_Decode(object):
         
     def fx_generation(self):
         '''Calculate the Fx(1), Fx(2), Fx(3), etc. Store these values in fx[]'''
+        upper_bound = 0
         for i in self.probabilities:
-            temp = self.temp2
-            self.temp2 += i
+            lower_bound = upper_bound
+            upper_bound += i
             # get a list with 3 items, each item is made of lower Fx and upper Fx
-            self.fx.append([temp, self.temp2])
+            self.fx.append([lower_bound, upper_bound])
 
             
     def search_fx(self):
-        lower_fx = 0
-        upper_fx = 0
         for i in range(len(self.fx)):
                 if self.temp < self.fx[i][1]:
                     lower_fx, upper_fx = self.fx[i][0], self.fx[i][1]
                     self.output.append(self.letters[i])
-                    print(self.output)
                     return lower_fx, upper_fx
         
             
     def calc_values(self, temp_sequence):
-        self.temp = 0
+        temp = 0
         for i in range(len(temp_sequence)):
             if temp_sequence[i] == "1":
-                self.temp += 2 ** (-i-1)
+                temp += 2 ** (-i-1)
+        return temp
     
     def e1_rescale(self):
         '''Realize E1 scale method'''
@@ -191,4 +190,4 @@ for i in encode_result:
 print(my_encode_sequence)
     
 my_decode_sequence = Tag_Decode(MODEL, list(my_encode_sequence)).get_output()
-print(my_decode_sequence)
+print("Decoded sequence: ", my_decode_sequence)
