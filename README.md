@@ -6,7 +6,7 @@ please do not use it for personal purpose.
 ### Assignment 1
 
 - **Exercise 1** realize Huffman coding and randomly generate 100 blocks for decoding.
-- **Exercise 3** realize arithmetic coding of encoding and decoding by certain sequence
+- **Exercise 3** realize arithmetic coding of encoding and decoding by certain sequence (assume that 4 letters are going to be decoded)
 
 
 ================================
