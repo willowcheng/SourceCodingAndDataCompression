@@ -135,9 +135,9 @@ class Tag_Decode(object):
                 # loop will be dead when last 6 bits are 100000
                 if temp_sequence == list("100000"):
                     #===========================================================
-                    # NECSSARY ASSUMPTION! FINAL BOUNDS SHOULD BE WITHIN [0.25, 0.75)
+                    # NECSSARY ASSUMPTION: 4 LETTERS AT LEAST
                     #===========================================================
-                    if not (self.lower_bound >= 0.25 and self.upper_bound < 0.75):
+                    if len(self.output) < 4:
                         continue
                     else:
                         return      
