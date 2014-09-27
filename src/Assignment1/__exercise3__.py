@@ -124,11 +124,7 @@ class Tag_Decode(object):
                 # choose specific length of sequence for further process
                 temp_sequence = self.sequence[i:i+6] 
                 if self.flag == True:
-                    self.temp = self.calc_values(temp_sequence)
-                    # loop will be dead when last 6 bits are 100000
-                    if self.temp == 2 ** (-1):
-                        lower_fx, upper_fx = self.search_fx()
-                        return
+                    self.temp = self.calc_values(temp_sequence)                  
                     self.flag = False
                 # get temp value with respect to lower bound and upper bound
                 self.temp = (self.temp - self.lower_bound) / (self.upper_bound - self.lower_bound) 
@@ -136,6 +132,15 @@ class Tag_Decode(object):
                 lower_fx, upper_fx = self.search_fx()
                 # update bounds value which is similar to encode class
                 self.update_bounds(lower_fx, upper_fx, self.lower_bound, self.upper_bound)    
+                # loop will be dead when last 6 bits are 100000
+                if temp_sequence == list("100000"):
+                    #===========================================================
+                    # NECSSARY ASSUMPTION! FINAL BOUNDS SHOULD BE WITHIN [0.25, 0.75)
+                    #===========================================================
+                    if not (self.lower_bound >= 0.25 and self.upper_bound < 0.75):
+                        continue
+                    else:
+                        return      
             else:
                 if self.upper_bound < 0.5:
                     self.e1_rescale()
@@ -195,7 +200,7 @@ class Tag_Decode(object):
         
 #------------------------------------------------------------------------------ Encode Instance
 # instantiate with SEQUENCE_1
-encode_result = Tag_Encode(MODEL, SEQUENCE_1).get_output()
+encode_result = Tag_Encode(MODEL, SEQUENCE_2).get_output()
 # print sequence list as well as encoded sequence 
 print("Encoded result: ", encode_result) 
 print("Encoded sequence: ", end = "")
